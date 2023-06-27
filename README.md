@@ -17,28 +17,18 @@ Here is a basic diagram that outlines the interaction between the components:
 
 ```mermaid
 sequenceDiagram
-  participant User as User/Script
-  participant Mina as Mina Blockchain
-  participant Add as Add Contract
-  User->>Mina: Initiate local blockchain
-  User->>User: Generate private keys for deployer, sender and zkApp
-  User->>Add: Instantiate 'Add' contract with zkApp account
-  User->>Add: Compile 'Add' contract
-  User->>Mina: Create deploy transaction
-  User->>User: Sign transaction with deployer and zkApp keys
-  User->>Mina: Send transaction to Mina
-  Mina->>Add: Deploy 'Add' contract
-  Add->>Mina: Initialize state: num = Field(1)
-  User->>Add: Get 'num' state after deployment
-  Add-->>User: Return 'num' state (num = 1)
-  User->>Mina: Create update transaction
-  User->>User: Prove and sign transaction with sender key
-  User->>Mina: Send transaction to Mina
-  Mina->>Add: Call 'update' method in 'Add' contract
-  Add->>Add: Update state: num = num + Field(2)
-  User->>Add: Get 'num' state after update
-  Add-->>User: Return 'num' state (num = 3)
-  User->>User: End script process
+    participant Deployer
+    participant zkApp
+    participant Sender
+    Deployer->>zkApp: compile and deploy contract
+    Note over zkApp: num state is Field(1)
+    Deployer->>zkApp: sign and send deployment transaction
+    zkApp->>Deployer: log initial state num: Field(1)
+    Sender->>zkApp: create update transaction
+    zkApp->>Sender: process update transaction
+    Note over zkApp: num state is updated to Field(3)
+    Sender->>zkApp: prove and sign transaction, then send
+    zkApp->>Sender: log updated state num: Field(3)
 ```
 
 ## How to build
