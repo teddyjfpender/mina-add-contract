@@ -1,87 +1,53 @@
-/**
- * This script can be used to interact with the Add contract, after deploying it.
- *
- * We call the update() method on the contract, create a proof and send it to the chain.
- * The endpoint that we interact with is read from your config.json.
- *
- * This simulates a user interacting with the zkApp from a browser, except that here, sending the transaction happens
- * from the script and we're using your pre-funded zkApp account to pay the transaction fee. In a real web app, the user's wallet
- * would send the transaction and pay the fee.
- *
- * To run locally:
- * Build the project: `$ npm run build`
- * Run with node:     `$ node build/src/interact.js <deployAlias>`.
- */
-import { Mina, PrivateKey } from 'snarkyjs';
-import fs from 'fs/promises';
+// Import the required modules and functions
+import { AccountUpdate, Mina, PrivateKey } from 'snarkyjs';
 import { Add } from './Add.js';
 
-// check command line arg
-let deployAlias = process.argv[2];
-if (!deployAlias)
-  throw Error(`Missing <deployAlias> argument.
+// Initiate a local Mina blockchain with proofs enabled
+const local = Mina.LocalBlockchain({ proofsEnabled: true }); // proofsEnabled is required for zkapps
+Mina.setActiveInstance(local); // Set this instance as the active one for Mina
 
-Usage:
-node build/src/interact.js <deployAlias>
-`);
-Error.stackTraceLimit = 1000;
+// Initialize account keys for deployment and interaction
+const { privateKey: deployerKey, publicKey: deployerAccount } =
+  local.testAccounts[0];
+const { privateKey: senderKey, publicKey: senderAccount } =
+  local.testAccounts[1];
 
-// parse config and private key from file
-type Config = {
-  deployAliases: Record<
-    string,
-    {
-      url: string;
-      keyPath: string;
-      fee: string;
-      feepayerKeyPath: string;
-      feepayerAlias: string;
-    }
-  >;
-};
-let configJson: Config = JSON.parse(await fs.readFile('config.json', 'utf8'));
-let config = configJson.deployAliases[deployAlias];
-let feepayerKeysBase58: { privateKey: string; publicKey: string } = JSON.parse(
-  await fs.readFile(config.feepayerKeyPath, 'utf8')
-);
+// Generate a random private key and corresponding public key (zkApp account)
+let zkAppPrivateKey = PrivateKey.random();
+let zkAppAccount = zkAppPrivateKey.toPublicKey();
+// Instantiate the Add contract for the zkApp account
+const zkApp = new Add(zkAppAccount);
 
-let zkAppKeysBase58: { privateKey: string; publicKey: string } = JSON.parse(
-  await fs.readFile(config.keyPath, 'utf8')
-);
-
-let feepayerKey = PrivateKey.fromBase58(feepayerKeysBase58.privateKey);
-let zkAppKey = PrivateKey.fromBase58(zkAppKeysBase58.privateKey);
-
-// set up Mina instance and contract we interact with
-const Network = Mina.Network(config.url);
-const fee = Number(config.fee) * 1e9; // in nanomina (1 billion = 1.0 mina)
-Mina.setActiveInstance(Network);
-let feepayerAddress = feepayerKey.toPublicKey();
-let zkAppAddress = zkAppKey.toPublicKey();
-let zkApp = new Add(zkAppAddress);
-
-let sentTx;
-// compile the contract to create prover keys
 console.log('compile the contract...');
+// Compile the Add contract
 await Add.compile();
-try {
-  // call update() and send transaction
-  console.log('build transaction and create proof...');
-  let tx = await Mina.transaction({ sender: feepayerAddress, fee }, () => {
-    zkApp.update();
-  });
-  await tx.prove();
-  console.log('send transaction...');
-  sentTx = await tx.sign([feepayerKey]).send();
-} catch (err) {
-  console.log(err);
-}
-if (sentTx?.hash() !== undefined) {
-  console.log(`
-Success! Update transaction sent.
 
-Your smart contract state will be updated
-as soon as the transaction is included in a block:
-https://berkeley.minaexplorer.com/transaction/${sentTx.hash()}
-`);
-}
+// Create and sign a transaction for deploying the contract using the deployer account
+const deployTxn = await Mina.transaction(deployerAccount, () => {
+  AccountUpdate.fundNewAccount(deployerAccount); // Fund the new account
+  zkApp.deploy(); // Deploy the contract
+});
+
+// Sign the transaction using the deployer key and the zkApp private key, and send it
+await deployTxn.sign([deployerKey, zkAppPrivateKey]).send();
+
+// Get and log the initial state of the deployed contract
+let num = await zkApp.num.get();
+console.log(`Deployed zkApp state, num: ${num.toString()}`);
+
+// Create a transaction for updating the state of the contract using the sender account
+const updateTxn = await Mina.transaction(senderAccount, () => {
+  zkApp.update();
+});
+
+console.log('sender is proving...');
+// Prove the transaction and sign it with the sender key, then send it
+await updateTxn.prove();
+await updateTxn.sign([senderKey]).send();
+
+// Get and log the updated state of the contract
+num = await zkApp.num.get();
+console.log(`After sender interacted, num: ${num.toString()}`);
+
+// End the script process
+process.exit(0);

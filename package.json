@@ -1,5 +1,5 @@
 {
-  "name": "mina-custom-tokens",
+  "name": "mina-add-contract",
   "version": "0.1.0",
   "description": "",
   "author": "",
@@ -48,5 +48,3 @@
     "snarkyjs": "0.11.*"
   }
 }
-
-

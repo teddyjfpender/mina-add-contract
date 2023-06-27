@@ -1,4 +1,4 @@
-# Mina zkApp: Mina Custom Tokens
+# Mina zkApp: Mina Add Contract
 
 This template uses TypeScript.
 
