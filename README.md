@@ -20,15 +20,17 @@ sequenceDiagram
     participant Deployer
     participant zkApp
     participant Sender
-    Deployer->>zkApp: compile and deploy contract
-    Note over zkApp: num state is Field(1)
-    Deployer->>zkApp: sign and send deployment transaction
-    zkApp->>Deployer: log initial state num: Field(1)
-    Sender->>zkApp: create update transaction
-    zkApp->>Sender: process update transaction
-    Note over zkApp: num state is updated to Field(3)
-    Sender->>zkApp: prove and sign transaction, then send
-    zkApp->>Sender: log updated state num: Field(3)
+    participant Mina
+    Deployer->>zkApp: Compile Add Contract
+    Deployer->>Mina: Send deploy tx
+    Mina->>Deployer: zkApp contract deployment confired
+    Note over Mina: zkApp State: num = 1
+    Deployer->>Sender: Provide Add contract
+    Sender->>zkApp: Construct tx that calls contract.update()
+    Sender->>Sender: Prove tx
+    Sender->>Mina: Send tx
+    Note over Mina: zkApp State: num = 3
+    Mina->>Sender: tx confirmed
 ```
 
 ## How to build
