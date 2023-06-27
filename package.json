@@ -24,10 +24,8 @@
     "lint": "npx eslint src/* --fix"
   },
   "lint-staged": {
-    "**/*": [
-      "eslint src/* --fix",
-      "prettier --write --ignore-unknown"
-    ]
+    "*.{js,jsx,ts,tsx}": "eslint --fix",
+    "*.{js,jsx,ts,tsx,json,md}": "prettier --write --ignore-unknown"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.16.4",
