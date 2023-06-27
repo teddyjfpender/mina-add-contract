@@ -1,6 +1,45 @@
 # Mina zkApp: Mina Add Contract
 
-This template uses TypeScript.
+This project demonstrates the basic usage of zkApps in Mina Protocol by implementing a simple smart contract named 'Add'. The 'Add' contract holds a state variable 'num', which is a field initialized to 1 by default when the contract is deployed. Upon calling the 'update' method, it adds 2 to the current 'num' state.
+
+The project is written in TypeScript and uses the snarkyjs library.
+
+### Architecture
+
+The project mainly consists of two parts:
+
+- The Add Contract (`Add.ts`)
+- Interaction Script (`interact.ts`)
+
+The 'Add' contract is a very basic smart contract example and the 'interact.ts' script is used to interact with the 'Add' contract by deploying and updating it.
+
+Here is a basic diagram that outlines the interaction between the components:
+
+```mermaid
+sequenceDiagram
+  participant User as User/Script
+  participant Mina as Mina Blockchain
+  participant Add as Add Contract
+  User->>Mina: Initiate local blockchain
+  User->>User: Generate private keys for deployer, sender and zkApp
+  User->>Add: Instantiate 'Add' contract with zkApp account
+  User->>Add: Compile 'Add' contract
+  User->>Mina: Create deploy transaction
+  User->>User: Sign transaction with deployer and zkApp keys
+  User->>Mina: Send transaction to Mina
+  Mina->>Add: Deploy 'Add' contract
+  Add->>Mina: Initialize state: num = Field(1)
+  User->>Add: Get 'num' state after deployment
+  Add-->>User: Return 'num' state (num = 1)
+  User->>Mina: Create update transaction
+  User->>User: Prove and sign transaction with sender key
+  User->>Mina: Send transaction to Mina
+  Mina->>Add: Call 'update' method in 'Add' contract
+  Add->>Add: Update state: num = num + Field(2)
+  User->>Add: Get 'num' state after update
+  Add-->>User: Return 'num' state (num = 3)
+  User->>User: End script process
+```
 
 ## How to build
 
