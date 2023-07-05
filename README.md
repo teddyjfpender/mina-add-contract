@@ -1,8 +1,8 @@
 # Mina zkApp: Mina Add Contract
 
-This project demonstrates the basic usage of zkApps in Mina Protocol by implementing a simple smart contract named 'Add'. The 'Add' contract holds a state variable 'num', which is a field initialized to 1 by default when the contract is deployed. Upon calling the 'update' method, it adds 2 to the current 'num' state.
+This project demonstrates the basic usage of zkApps in Mina Protocol by implementing a simple smart contract named `Add`. The `Add` contract holds a state variable `num`, which is a field initialized to `1` by default when the contract is deployed. Upon calling the `update` method, it adds `2` to the current `num` state.
 
-The project is written in TypeScript and uses the snarkyjs library.
+The project is written in TypeScript and uses the `snarkyjs` library.
 
 ### Architecture
 
