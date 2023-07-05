@@ -11,7 +11,7 @@ The project mainly consists of two parts:
 - The Add Contract (`Add.ts`)
 - Interaction Script (`interact.ts`)
 
-The 'Add' contract is a very basic smart contract example and the 'interact.ts' script is used to interact with the 'Add' contract by deploying and updating it.
+The `Add` contract is a very basic smart contract example and the `interact.ts` script is used to interact with the `Add` contract by deploying and updating it.
 
 Here is a basic diagram that outlines the interaction between the components:
 
